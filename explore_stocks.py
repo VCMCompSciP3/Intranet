@@ -6,10 +6,10 @@ DB_PATH = Path(r"\\192.168.1.95\CS-CLASSROOM\intraday_5m.sqlite")
 DB_URI = "file:////192.168.1.95/CS-CLASSROOM/intraday_5m.sqlite?mode=ro&immutable=1"
 
 # Customize these after examining which stocks and dates are available.
-STOCK_TO_EXPLORE = "AAPL"
-START_DATE = "2025-01-01"
-END_DATE = "2025-01-10"
-PREVIEW_ROWS = 10
+STOCK_TO_EXPLORE = "TSLA"
+START_DATE = "2025-11-01"
+END_DATE = "2025-11-06"
+PREVIEW_ROWS = 5
 
 
 def show_rows(title, columns, rows):
