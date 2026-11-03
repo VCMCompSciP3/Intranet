@@ -6,10 +6,10 @@ DB_PATH = Path(r"\\192.168.1.95\CS-CLASSROOM\intraday_5m.sqlite")
 DB_URI = "file:////192.168.1.95/CS-CLASSROOM/intraday_5m.sqlite?mode=ro&immutable=1"
 
 # Customize these after examining which stocks and dates are available.
-STOCK_TO_EXPLORE = "TSLA"
-START_DATE = "2025-11-01"
-END_DATE = "2025-11-06"
-PREVIEW_ROWS = 5
+STOCK_TO_EXPLORE = "AAPL"
+START_DATE = "2025-01-01"
+END_DATE = "2025-01-31"
+PREVIEW_ROWS = 15
 
 
 def show_rows(title, columns, rows):
@@ -99,6 +99,31 @@ def main():
               AND ts_utc >= ?
               AND ts_utc < ?
             GROUP BY symbol
+        """, (STOCK_TO_EXPLORE, START_DATE, END_DATE))
+        
+        # 6. Show the first and last price in the chosen period
+        query(conn, f"{STOCK_TO_EXPLORE}: opening and closing price", """
+            WITH chosen_bars AS (
+                SELECT ts_utc, close
+                FROM bars_5m
+                WHERE symbol = ?
+                  AND ts_utc >= ? AND ts_utc < ?
+            )
+            SELECT MIN(ts_utc) AS first_time,
+                   MAX(ts_utc) AS last_time,
+                   (SELECT close FROM chosen_bars ORDER BY ts_utc ASC LIMIT 1) AS first_close,
+                   (SELECT close FROM chosen_bars ORDER BY ts_utc DESC LIMIT 1) AS last_close
+            FROM chosen_bars
+        """, (STOCK_TO_EXPLORE, START_DATE, END_DATE))
+
+        # 7. Count how many bars went up or down
+        query(conn, f"{STOCK_TO_EXPLORE}: how many bars went up or down", """
+            SELECT CASE WHEN close > open THEN 'Up' ELSE 'Down' END AS direction,
+                   COUNT(*) AS bar_count
+            FROM bars_5m
+            WHERE symbol = ?
+              AND ts_utc >= ? AND ts_utc < ?
+            GROUP BY direction
         """, (STOCK_TO_EXPLORE, START_DATE, END_DATE))
 
     print("\nExploration complete. Decide:")
