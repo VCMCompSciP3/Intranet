@@ -1,0 +1,35 @@
+name: Train and trade (paper)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "25 17 * * 1-5"   # 12:25 ET in winter; use "25 16 * * 1-5" during daylight saving
+
+concurrency:
+  group: trading
+  cancel-in-progress: false
+
+jobs:
+  trade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Train model
+        run: python train_model.py | tee training_log.txt
+
+      - name: Trade
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          DRY_RUN: "1"            # change to "0" to place paper orders
+          MAX_RUN_MINUTES: "60"
+        run: python trade.py
