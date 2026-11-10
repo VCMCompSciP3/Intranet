@@ -1,0 +1,38 @@
+name: Train linear regression model
+
+on:
+  workflow_dispatch:          # manual "Run workflow" button
+  schedule:
+    - cron: "30 21 * * 1-5"   # once per weekday, 21:30 UTC (after the US close)
+  push:
+    branches: [main]
+    paths:                    # only retrain when the code or data changes
+      - train_model.py
+      - my_stocks_5m.sqlite
+      - requirements.txt
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Train model
+        run: python train_model.py | tee training_log.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linreg-model
+          path: |
+            linreg_model.joblib
+            training_log.txt
+          retention-days: 7
