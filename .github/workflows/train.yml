@@ -1,21 +1,18 @@
-name: Train linear regression model
+name: Train and trade (paper)
 
 on:
-  workflow_dispatch:          # manual "Run workflow" button
+  workflow_dispatch:
   schedule:
-    - cron: "30 21 * * 1-5"   # once per weekday, 21:30 UTC (after the US close)
-  push:
-    branches: [main]
-    paths:                    # only retrain when the code or data changes
-      - train_model.py
-      - my_stocks_5m.sqlite
-      - requirements.txt
+    - cron: "25 17 * * 1-5"   # 12:25 ET in winter; use "25 16 * * 1-5" during daylight saving
+
+concurrency:
+  group: trading
+  cancel-in-progress: false
 
 jobs:
-  train:
+  trade:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
 
@@ -29,10 +26,10 @@ jobs:
       - name: Train model
         run: python train_model.py | tee training_log.txt
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: linreg-model
-          path: |
-            linreg_model.joblib
-            training_log.txt
-          retention-days: 7
+      - name: Trade
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          DRY_RUN: "1"            # change to "0" to place paper orders
+          MAX_RUN_MINUTES: "60"
+        run: python trade.py
