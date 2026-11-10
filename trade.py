@@ -22,7 +22,7 @@ DOLLARS_PER_TRADE = 100          # size of each buy
 THRESHOLD = 0.0005               # buy only if predicted 30-min return > 0.05%
 MAX_POSITIONS = 5
 MAX_RUN_MINUTES = int(os.getenv("MAX_RUN_MINUTES", "60"))
-DRY_RUN = os.getenv("DRY_RUN", "1") == "1"   # set DRY_RUN=0 to actually send orders
+DRY_RUN = os.getenv("DRY_RUN", "1") == "0"   # set DRY_RUN=0 to actually send orders
 LAGS = (1, 3, 6, 12, 36)
 
 KEY = os.environ["ALPACA_API_KEY"]
