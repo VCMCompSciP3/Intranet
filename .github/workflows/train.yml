@@ -30,6 +30,6 @@ jobs:
         env:
           ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
-          DRY_RUN: "1"            # change to "0" to place paper orders
+          DRY_RUN: "0"            # change to "0" to place paper orders
           MAX_RUN_MINUTES: "60"
         run: python trade.py
