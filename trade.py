@@ -106,17 +106,23 @@ def main():
     deadline = time.time() + MAX_RUN_MINUTES * 60
     while time.time() < deadline:
         clock = trading.get_clock()
+        print(f"Clock: now={clock.timestamp} open={clock.is_open} "
+              f"next_open={clock.next_open} next_close={clock.next_close}")
         if not clock.is_open:
+            wait = (clock.next_open - clock.timestamp).total_seconds()
+            if wait <= 30 * 60 and time.time() + wait < deadline:
+                print(f"Opens in {wait/60:.0f} min. Waiting.")
+                time.sleep(wait + 5)
+                continue
             print("Market is closed. Exiting.")
             return
-        # flatten 15 minutes before the close
         if clock.next_close - clock.timestamp <= timedelta(minutes=15):
             print("Near close: closing all positions.")
             if not DRY_RUN:
                 trading.close_all_positions(cancel_orders=True)
             return
         run_once()
-        time.sleep(300)   # one pass per 5-minute bar
+        time.sleep(300)
 
 
 if __name__ == "__main__":
